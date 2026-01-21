@@ -198,7 +198,9 @@ The `navigator.webdriver` property is mandated by the W3C WebDriver specificatio
 Object.defineProperty(navigator, 'webdriver', {
   get: () => undefined
 });
-Deep Detection
+
+
+### Deep Detection
 
 Property descriptor integrity
 
