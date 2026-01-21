@@ -1,90 +1,105 @@
-🕵️ Advanced Bot Detection & Evasion
+# 🕵️ Advanced Bot Detection & Evasion
 
-Analysis of Advanced Automation: Detection, Evasion, and Defense Mechanisms. This research explores the boundary between automated scripts and genuine human interaction within modern web environments.
-🏆 Detection Bypass Scorecard
+[![Puppeteer](https://img.shields.io/badge/Library-Puppeteer-green.svg)](https://pptr.dev/)
+[![Playwright](https://img.shields.io/badge/Library-Playwright-blue.svg)](https://playwright.dev/)
+[![Security](https://img.shields.io/badge/Focus-SecOps%20%2F%20Blue%20Team-red.svg)]()
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-This project tracks the efficacy of evasion techniques against industry-standard anti-bot platforms and fingerprinting suites.
-Platform	Status	Success Score	Technical Note
-https://www.google.com/search?q=Fingerprint.com (v3)	✅ Passed	98/100	Successfully mitigated JS runtime leaks.
-Cloudflare Turnstile	✅ Bypassed	95/100	Managed challenges solved via behavioral entropy.
-Pixelscan	🟢 Clean	100/100	Zero automation traces detected.
-CreepJS	🟡 Stealth	92/100	High trust score on advanced fingerprinting.
-SannySoft Bot Test	✅ Passed	100/100	All "Red" flags neutralized to "Green".
-🚀 Executive Summary
+**Analysis of Advanced Automation: Detection, Evasion, and Defense Mechanisms.** Bu araştırma, modern web ekosistemindeki gelişmiş otomasyon araçları ile gerçek kullanıcı etkileşimi arasındaki sınırı teknik bir perspektifle inceler.
 
-This project analyzes the current state of browser-based automation (bots) targeting web applications. By focusing on "headless" browsers like Playwright, Puppeteer, and Selenium, we evaluate detection signals across network and application layers.
+---
 
-The primary goal is to simulate a realistic Account Takeover (ATO) and Inventory Scraping scenario to test defense-in-depth models and define more resilient SOC (Security Operations Center) workflows.
-🔍 Technical Focus: Detection Engineering
+## 🏆 Detection Bypass Scorecard
 
-The project breaks down detection into three primary layers:
-1. Application Layer (Client-Side)
+Projenin anti-bot platformları ve parmak izi test suitleri üzerindeki güncel başarı oranları:
 
-    Headless Indicators: Monitoring navigator.webdriver, feature inconsistencies (e.g., MacIntel platform vs. SwiftShader renderer), and Permissions API anomalies.
+| Platform | Status | Success Score | Technical Note |
+| :--- | :---: | :---: | :--- |
+| **Fingerprint.com (v3)** | ✅ Passed | **98/100** | JS runtime sızıntıları başarıyla giderildi. |
+| **Cloudflare Turnstile** | ✅ Bypassed | **95/100** | Davranışsal entropi ile zorluklar aşıldı. |
+| **Pixelscan** | 🟢 Clean | **100/100** | Otomasyon izine rastlanmadı. |
+| **CreepJS** | 🟡 Stealth | **92/100** | Gelişmiş parmak izinde yüksek güven puanı. |
+| **SannySoft Bot Test** | ✅ Passed | **100/100** | Tüm "Red" bayraklar "Green"e dönüştürüldü. |
 
-    Fingerprint Collisions: Identifying identical canvas/WebGL hashes originating from virtualized hardware in cloud environments (AWS/GCP/Azure).
+---
 
-2. Network & TLS Fingerprinting
+## 🚀 Proje Özeti
 
-    JA3/JA4 Signatures: Analyzing TLS ClientHello packets to distinguish between net/http libraries and genuine browsers.
+Bu çalışma, web uygulamalarını hedefleyen tarayıcı tabanlı otomasyonların (botlar) mevcut durumunu analiz eder. **Playwright**, **Puppeteer** ve **Selenium** gibi "headless" tarayıcılara odaklanarak; ağ, TLS ve uygulama katmanlarındaki tespit sinyallerini değerlendirir.
 
-    HTTP/2 Frame Analysis: Detecting anomalies in window update sizes and header prioritization.
+Proje, gerçekçi bir **Hesap Ele Geçirme (ATO)** ve **Envanter Kazıma (Scraping)** senaryosu üzerinden savunma modellerini test etmeyi ve daha dirençli SOC (Güvenlik Operasyonları Merkezi) iş akışları tanımlamayı amaçlar.
 
-3. Behavioral Analysis
+---
 
-    Mouse Dynamics: Differentiating between linear interpolation (bots) and human entropy (jitter, curves, acceleration).
+## 🔍 Teknik Odak: Tespit Mühendisliği (Detection)
 
-    Temporal Heuristics: Detecting "superhuman" reaction times and perfectly periodic polling.
+Proje, tespiti üç ana katmanda ele alır:
 
-🛠 Evasion (Red Team) Techniques
+### 1. Uygulama Katmanı (Client-Side)
+* **Headless Göstergeleri:** `navigator.webdriver` kontrolü, özellik tutarsızlıkları (örn: `MacIntel` platformu vs `SwiftShader` renderer) ve Permissions API anomalileri.
+* **Fingerprint Çakışmaları:** Bulut ortamlarındaki (AWS/GCP/Azure) sanallaştırılmış donanımlardan kaynaklanan özdeş canvas/WebGL hash'lerinin tespiti.
 
-The laboratory findings include methods to mask automation and increase "Human-Likeness":
+### 2. Ağ ve TLS Parmak İzi
+* **JA3/JA4 İmzaları:** TLS ClientHello paketlerini analiz ederek `net/http` kütüphaneleri ile gerçek tarayıcılar arasındaki farkın ayırt edilmesi.
+* **HTTP/2 Frame Analizi:** Pencere güncelleme boyutları ve başlık önceliklendirmelerindeki sapmaların tespiti.
 
-    Runtime Patching: Using Page.evaluateOnNewDocument to redefine JS objects before page load.
+### 3. Davranışsal Analiz
+* **Mouse Dinamikleri:** Doğrusal interpolasyon (bot) ile insan entropisi (titreşim, kavis, ivme) arasındaki farklar.
+* **Zamanasal Sezgiler:** "Süper insan" tepki süreleri ve mükemmel periyodiklikteki isteklerin analizi.
 
-    Consistency Engine: Synchronizing User-Agent with navigator.userAgentData, screen dimensions, and hardware concurrency.
+---
 
-    Side-Effect Mitigation: Analyzing and removing traces left by evasion scripts themselves (e.g., ensuring navigator.webdriver is undefined rather than false).
+## 🛠 Evasion (Red Team) Teknikleri
 
-💻 Installation & Usage
-Bash
+Otomasyonu maskelemek ve "İnsan Benzerliği"ni artırmak için kullanılan laboratuvar bulguları:
 
-# Clone the repository
-git clone https://github.com/begumakyuz/Advanced-Bot-Detection-And-Evasion.git
+* **Runtime Patching:** Sayfa yüklenmeden önce JS nesnelerini manipüle etmek için `Page.evaluateOnNewDocument` kullanımı.
+* **Consistency Engine:** `User-Agent` verisinin `navigator.userAgentData`, ekran boyutları ve donanım concurrency verileriyle senkronize edilmesi.
+* **Yan Etki Azaltma:** Evasion scriptlerinin kendisinin bıraktığı izlerin (örn: `navigator.webdriver`'ın `false` yerine `undefined` olması) temizlenmesi.
 
-# Install dependencies
+---
+
+## 💻 Kurulum ve Kullanım
+
+```bash
+# Depoyu klonlayın
+git clone [https://github.com/begumakyuz/Advanced-Bot-Detection-And-Evasion.git](https://github.com/begumakyuz/Advanced-Bot-Detection-And-Evasion.git)
+
+# Bağımlılıkları yükleyin
 npm install
 
-# Run the detection test suite
+# Tespit test suitini çalıştırın
 node src/detection-test.js
 
-# Launch the stealth automation lab
+# Stealth otomasyon laboratuvarını başlatın
 node src/evasion-demo.js
 
-📊 Real-World Threat Model: "ShopGuard Inc."
+## 📊 Tehdit Modeli: "ShopGuard Inc."
 
-    Target: Fictitious E-commerce & SaaS Platform.
+* **Hedef:** Kurgusal E-ticaret ve SaaS Platformu.
+* **Tehdit:** Sürekli Kimlik Bilgisi Doldurma (Credential Stuffing).
+* **Saldırgan TTP'leri:** Modifiye edilmiş Puppeteer (Stealth), Konut Tipi Proxy Ağları, insan sirkadiyen ritimlerinin taklidi.
+* **Mavi Takım KPI:** Hedef Yanlış Pozitif Oranı (FPR) < %0.01.
 
-    Threat: Persistent Credential Stuffing (ATO).
+---
 
-    Adversary TTPs: Modified Puppeteer (Stealth), Residential Proxy Networks, mimicking human circadian rhythms.
+## ⚠️ Yasal ve Etik Uyarı
 
-    Blue Team KPI: Target False Positive Rate (FPR) < 0.01%.
+> [!IMPORTANT]
+> **Sorumluluk Reddi:** Bu proje tamamen eğitim ve güvenlik araştırması amaçlıdır.
 
-⚠️ Legal & Ethical Considerations
+* **Uyumluluk:** Parmak izi toplama uygulamaları, GDPR/KVKK kapsamında "Güvenlik Gerekliliği" ilkesine uygun olmalıdır.
+* **Etik Sınırlar:** Savunma stratejileri pasif veya engelleyici kalmalıdır. Bot operatörlerine karşı "geri hackleme" (hacking back) veya aktif saldırı yöntemleri yasa dışıdır ve bu araştırmanın kapsamı dışındadır.
 
-Disclaimer: This project is for educational and security research purposes only.
+---
 
-    Compliance: Fingerprinting practices must align with GDPR/KVKK under "Security Necessity."
+## 📝 Kaynakça
 
-    Ethical Boundaries: Defense must remain passive or obstructive. "Hacking back" or active countermeasures against bot operators are illegal and outside the scope of this research.
+* **Google Chrome Developers:** [Headless Chrome Functionality](https://developer.chrome.com/blog/headless-chrome/)
+* **Salesforce Engineering:** [JA3: Profiling SSL/TLS Clients](https://engineering.salesforce.com/tls-fingerprinting-with-ja3-and-ja3s-248124403162/)
+* **MITRE ATT&CK:** [T1078 - Valid Accounts](https://attack.mitre.org/techniques/T1078/)
 
-📝 References
+---
 
-    Google Chrome Developers: Headless Chrome Functionality
-
-    Salesforce Engineering: JA3: Profiling SSL/TLS Clients
-
-    MITRE ATT&CK: T1078 - Valid Accounts
-
-Developed by Begüm Akyüz Information Security Technology Student
+**Developed by [Begüm Akyüz](https://github.com/begumakyuz)**
+*Information Security Technology Student*
