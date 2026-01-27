@@ -79,6 +79,146 @@ pip install -r requirements.txt
 playwright install chromium
 ```
 
+### 3. Sistem Sağlığını Kontrol Et (Opsiyonel ama Önerilen)
+
+```bash
+python self_check.py
+```
+
+veya hızlı kontrol için:
+
+```bash
+python self_check.py --quick
+```
+
+## 🛠️ Auto Test Ability (Self-Check)
+
+Proje, kendi sağlığını otomatik olarak kontrol edebilir! Bu özellik şunları test eder:
+
+### Kontrol Edilen Bileşenler:
+
+- ✅ **Python Version** - Minimum 3.8 gerekli
+- ✅ **Operating System** - Platform bilgisi
+- ✅ **Playwright Library** - Kütüphane yüklü mü?
+- ✅ **Chromium Browser** - Browser kurulu ve çalışıyor mu?
+- ✅ **Directory Structure** - Gerekli klasörler var mı?
+- ✅ **File Permissions** - Yazma izinleri tamam mı?
+- ✅ **Network Connectivity** - İnternet bağlantısı var mı?
+- ✅ **Fingerprint Injection** - JS injection çalışıyor mu?
+- ✅ **Memory Usage** - Yeterli RAM var mı?
+- ✅ **Disk Space** - Yeterli disk alanı var mı?
+
+### Self-Check Kullanımı:
+
+#### 1. Standalone Script ile:
+
+```bash
+# Tam kontrol
+python self_check.py
+
+# Hızlı kontrol (network ve browser testleri atlanır)
+python self_check.py --quick
+
+# Rapor kaydetme
+python self_check.py --save-report
+
+# Hızlı kontrol + rapor
+python self_check.py -q -s
+```
+
+#### 2. Ana Program İçinde:
+
+Ana programı çalıştırdığınızda self-check yapma seçeneği sunulur:
+
+```bash
+python bot_detection_analyzer.py
+
+# Program size soracak:
+# 1. Direkt analiz yap
+# 2. Önce sistem sağlık kontrolü yap (Self-Check)
+```
+
+#### 3. Programatik Kullanım:
+
+```python
+from bot_detection_analyzer import SystemHealthChecker
+
+# Health checker oluştur
+checker = SystemHealthChecker()
+
+# Tam kontrol
+success = checker.run_all_checks()
+
+# Hızlı kontrol
+success = checker.run_all_checks(skip_network=True, skip_browser=True)
+
+# Rapor kaydet
+checker.save_report("my_health_report.json")
+
+# Sonuçları al
+if success:
+    print("Sistem sağlıklı!")
+else:
+    print(f"Hatalar: {checker.errors}")
+    print(f"Uyarılar: {checker.warnings}")
+```
+
+### Self-Check Çıktı Örneği:
+
+```
+================================================================================
+🛠️  SYSTEM HEALTH CHECK - AUTO TEST ABILITY
+================================================================================
+Proje bileşenlerinin sağlığı kontrol ediliyor...
+
+⏳ Python Version......................... ✅ OK
+⏳ System Info............................ ✅ OK
+⏳ Playwright Library..................... ✅ OK
+⏳ Chromium Browser....................... ✅ OK
+⏳ Directory Structure..................... ✅ OK
+⏳ File Permissions....................... ✅ OK
+⏳ Memory Usage........................... ✅ OK
+⏳ Disk Space............................. ✅ OK
+⏳ Fingerprint Test....................... ✅ OK
+⏳ Network Connection..................... ✅ OK
+
+================================================================================
+📊 HEALTH CHECK SUMMARY
+================================================================================
+
+✅ Başarılı: 10/10
+⚠️  Uyarı: 0/10
+❌ Hata: 0/10
+⏱️  Süre: 3.45 saniye
+
+================================================================================
+🎉 MÜKEMMEL! Tüm sistem kontrolleri başarılı.
+================================================================================
+```
+
+### Health Check Raporu (JSON):
+
+```json
+{
+  "timestamp": "2024-01-27T14:30:22.123456",
+  "duration_seconds": 3.45,
+  "summary": {
+    "total_checks": 10,
+    "passed": 10,
+    "warnings": 0,
+    "errors": 0
+  },
+  "checks": {
+    "Python Version": {
+      "status": "✅ OK",
+      "value": "3.11.0",
+      "details": "Python 3.11.0 - Destekleniyor"
+    },
+    ...
+  }
+}
+```
+
 ## 🚀 Kullanım
 
 ### Basit Kullanım
