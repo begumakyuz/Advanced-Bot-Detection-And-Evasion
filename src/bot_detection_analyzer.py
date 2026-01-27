@@ -20,6 +20,9 @@ Kontrol Edilen Kriterler:
 import logging
 import json
 import os
+import sys
+import platform
+import subprocess
 from datetime import datetime
 from pathlib import Path
 from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeout
@@ -34,6 +37,402 @@ logging.basicConfig(
     ]
 )
 logger = logging.getLogger(__name__)
+
+
+class SystemHealthChecker:
+    """
+    'Auto Test Ability' (Self-Check) Sistemi
+    =========================================
+    Projenin tüm bileşenlerinin sağlığını kontrol eder ve detaylı rapor sunar.
+    """
+    
+    def __init__(self):
+        self.checks = {}
+        self.warnings = []
+        self.errors = []
+        self.start_time = datetime.now()
+    
+    def check_python_version(self) -> bool:
+        """Python versiyonunu kontrol et (minimum 3.8)"""
+        version = sys.version_info
+        version_str = f"{version.major}.{version.minor}.{version.micro}"
+        
+        if version.major >= 3 and version.minor >= 8:
+            self.checks['Python Version'] = {
+                'status': '✅ OK',
+                'value': version_str,
+                'details': f"Python {version_str} - Destekleniyor"
+            }
+            return True
+        else:
+            self.checks['Python Version'] = {
+                'status': '❌ HATA',
+                'value': version_str,
+                'details': f"Python {version_str} - Minimum 3.8 gerekli!"
+            }
+            self.errors.append("Python versiyonu çok eski (min. 3.8)")
+            return False
+    
+    def check_system_info(self) -> bool:
+        """İşletim sistemi bilgilerini kontrol et"""
+        system = platform.system()
+        release = platform.release()
+        machine = platform.machine()
+        
+        self.checks['Operating System'] = {
+            'status': '✅ OK',
+            'value': f"{system} {release}",
+            'details': f"{system} {release} ({machine})"
+        }
+        return True
+    
+    def check_playwright_installation(self) -> bool:
+        """Playwright kurulumunu kontrol et"""
+        try:
+            import playwright
+            version = playwright.__version__ if hasattr(playwright, '__version__') else 'Unknown'
+            
+            self.checks['Playwright Library'] = {
+                'status': '✅ OK',
+                'value': version,
+                'details': f"Playwright {version} yüklü"
+            }
+            return True
+        except ImportError:
+            self.checks['Playwright Library'] = {
+                'status': '❌ HATA',
+                'value': 'Yüklü değil',
+                'details': "pip install playwright ile yükleyin"
+            }
+            self.errors.append("Playwright kütüphanesi yüklü değil")
+            return False
+    
+    def check_playwright_browsers(self) -> bool:
+        """Playwright browser'larının kurulu olup olmadığını kontrol et"""
+        try:
+            # Playwright'ın browser'larını kontrol et
+            with sync_playwright() as p:
+                try:
+                    browser = p.chromium.launch(headless=True)
+                    browser.close()
+                    self.checks['Chromium Browser'] = {
+                        'status': '✅ OK',
+                        'value': 'Kurulu',
+                        'details': "Chromium browser başarıyla başlatıldı"
+                    }
+                    return True
+                except Exception as e:
+                    self.checks['Chromium Browser'] = {
+                        'status': '❌ HATA',
+                        'value': 'Kurulu değil',
+                        'details': f"playwright install chromium ile yükleyin - Hata: {str(e)[:50]}"
+                    }
+                    self.errors.append("Chromium browser kurulu değil")
+                    return False
+        except Exception as e:
+            self.checks['Chromium Browser'] = {
+                'status': '❌ HATA',
+                'value': 'Test edilemedi',
+                'details': f"Browser testi başarısız: {str(e)[:50]}"
+            }
+            self.errors.append("Browser testi yapılamadı")
+            return False
+    
+    def check_directory_structure(self) -> bool:
+        """Gerekli klasör yapısını kontrol et ve oluştur"""
+        required_dirs = [
+            'assets',
+            'assets/bot_analysis'
+        ]
+        
+        all_ok = True
+        for dir_path in required_dirs:
+            path = Path(dir_path)
+            if path.exists():
+                self.checks[f'Directory: {dir_path}'] = {
+                    'status': '✅ OK',
+                    'value': 'Var',
+                    'details': f"'{dir_path}' klasörü mevcut"
+                }
+            else:
+                try:
+                    path.mkdir(parents=True, exist_ok=True)
+                    self.checks[f'Directory: {dir_path}'] = {
+                        'status': '⚠️ OLUŞTURULDU',
+                        'value': 'Yeni oluşturuldu',
+                        'details': f"'{dir_path}' klasörü oluşturuldu"
+                    }
+                    self.warnings.append(f"'{dir_path}' klasörü yoktu, oluşturuldu")
+                except Exception as e:
+                    self.checks[f'Directory: {dir_path}'] = {
+                        'status': '❌ HATA',
+                        'value': 'Oluşturulamadı',
+                        'details': f"Klasör oluşturulamadı: {str(e)[:50]}"
+                    }
+                    self.errors.append(f"'{dir_path}' oluşturulamadı")
+                    all_ok = False
+        
+        return all_ok
+    
+    def check_file_permissions(self) -> bool:
+        """Dosya yazma izinlerini kontrol et"""
+        test_dir = Path('assets/bot_analysis')
+        test_file = test_dir / '.permission_test'
+        
+        try:
+            # Test dosyası oluştur
+            test_file.write_text('test')
+            test_file.unlink()  # Sil
+            
+            self.checks['File Permissions'] = {
+                'status': '✅ OK',
+                'value': 'Yazılabilir',
+                'details': "Çıktı klasörüne yazma izni var"
+            }
+            return True
+        except Exception as e:
+            self.checks['File Permissions'] = {
+                'status': '❌ HATA',
+                'value': 'Yazılamıyor',
+                'details': f"Yazma izni yok: {str(e)[:50]}"
+            }
+            self.errors.append("Çıktı klasörüne yazma izni yok")
+            return False
+    
+    def check_network_connectivity(self) -> bool:
+        """İnternet bağlantısını test et"""
+        try:
+            with sync_playwright() as p:
+                browser = p.chromium.launch(headless=True)
+                context = browser.new_context()
+                page = context.new_page()
+                
+                # Basit bir test
+                page.goto("https://www.google.com", timeout=10000)
+                page.wait_for_timeout(1000)
+                
+                browser.close()
+                
+                self.checks['Network Connectivity'] = {
+                    'status': '✅ OK',
+                    'value': 'Çalışıyor',
+                    'details': "İnternet bağlantısı aktif"
+                }
+                return True
+        except Exception as e:
+            self.checks['Network Connectivity'] = {
+                'status': '⚠️ UYARI',
+                'value': 'Sorunlu',
+                'details': f"İnternet bağlantısı test edilemedi: {str(e)[:50]}"
+            }
+            self.warnings.append("İnternet bağlantısı sorunlu olabilir")
+            return False
+    
+    def check_memory_usage(self) -> bool:
+        """Sistem bellek kullanımını kontrol et"""
+        try:
+            import psutil
+            memory = psutil.virtual_memory()
+            available_gb = memory.available / (1024**3)
+            
+            if available_gb < 1:
+                status = '⚠️ UYARI'
+                self.warnings.append("Kullanılabilir bellek 1GB'den az")
+            else:
+                status = '✅ OK'
+            
+            self.checks['Available Memory'] = {
+                'status': status,
+                'value': f"{available_gb:.2f} GB",
+                'details': f"Kullanılabilir RAM: {available_gb:.2f} GB"
+            }
+            return True
+        except ImportError:
+            self.checks['Available Memory'] = {
+                'status': 'ℹ️ BİLGİ',
+                'value': 'Test edilemedi',
+                'details': "psutil kütüphanesi yüklü değil (opsiyonel)"
+            }
+            return True
+    
+    def check_disk_space(self) -> bool:
+        """Disk alanını kontrol et"""
+        try:
+            import shutil
+            total, used, free = shutil.disk_usage(".")
+            free_gb = free / (1024**3)
+            
+            if free_gb < 1:
+                status = '⚠️ UYARI'
+                self.warnings.append("Boş disk alanı 1GB'den az")
+            else:
+                status = '✅ OK'
+            
+            self.checks['Disk Space'] = {
+                'status': status,
+                'value': f"{free_gb:.2f} GB boş",
+                'details': f"Kullanılabilir disk alanı: {free_gb:.2f} GB"
+            }
+            return True
+        except Exception as e:
+            self.checks['Disk Space'] = {
+                'status': 'ℹ️ BİLGİ',
+                'value': 'Test edilemedi',
+                'details': f"Disk alanı kontrol edilemedi: {str(e)[:50]}"
+            }
+            return True
+    
+    def test_fingerprint_injection(self) -> bool:
+        """Fingerprint collection script'inin çalışıp çalışmadığını test et"""
+        try:
+            with sync_playwright() as p:
+                browser = p.chromium.launch(headless=True)
+                page = browser.new_page()
+                page.goto("about:blank")
+                
+                # Basit bir test script'i çalıştır
+                result = page.evaluate("""
+                () => {
+                    return {
+                        webdriver: navigator.webdriver,
+                        plugins: navigator.plugins.length,
+                        platform: navigator.platform
+                    }
+                }
+                """)
+                
+                browser.close()
+                
+                if result and 'platform' in result:
+                    self.checks['Fingerprint Injection'] = {
+                        'status': '✅ OK',
+                        'value': 'Çalışıyor',
+                        'details': "JavaScript injection başarılı"
+                    }
+                    return True
+                else:
+                    self.checks['Fingerprint Injection'] = {
+                        'status': '⚠️ UYARI',
+                        'value': 'Kısmi başarı',
+                        'details': "Script çalıştı ama tam veri alınamadı"
+                    }
+                    self.warnings.append("Fingerprint injection tam çalışmıyor")
+                    return False
+        except Exception as e:
+            self.checks['Fingerprint Injection'] = {
+                'status': '❌ HATA',
+                'value': 'Başarısız',
+                'details': f"Script çalıştırılamadı: {str(e)[:50]}"
+            }
+            self.errors.append("Fingerprint injection testi başarısız")
+            return False
+    
+    def run_all_checks(self, skip_network: bool = False, skip_browser: bool = False) -> bool:
+        """Tüm kontrolleri çalıştır"""
+        print("\n" + "=" * 80)
+        print("🛠️  SYSTEM HEALTH CHECK - AUTO TEST ABILITY")
+        print("=" * 80)
+        print("Proje bileşenlerinin sağlığı kontrol ediliyor...\n")
+        
+        # Temel kontroller
+        checks_to_run = [
+            ("Python Version", self.check_python_version),
+            ("System Info", self.check_system_info),
+            ("Playwright Library", self.check_playwright_installation),
+            ("Directory Structure", self.check_directory_structure),
+            ("File Permissions", self.check_file_permissions),
+            ("Memory Usage", self.check_memory_usage),
+            ("Disk Space", self.check_disk_space),
+        ]
+        
+        # Browser ve network testleri (opsiyonel)
+        if not skip_browser:
+            checks_to_run.append(("Chromium Browser", self.check_playwright_browsers))
+            checks_to_run.append(("Fingerprint Test", self.test_fingerprint_injection))
+        
+        if not skip_network:
+            checks_to_run.append(("Network Connection", self.check_network_connectivity))
+        
+        # Tüm kontrolleri çalıştır
+        for check_name, check_func in checks_to_run:
+            try:
+                print(f"⏳ {check_name:.<40} ", end='', flush=True)
+                check_func()
+                print(self.checks.get(check_name, {}).get('status', '❓'))
+            except Exception as e:
+                print(f"❌ HATA: {str(e)[:40]}")
+                self.errors.append(f"{check_name}: {str(e)}")
+        
+        # Sonuçları göster
+        self.print_summary()
+        
+        # Tüm kritik kontroller başarılı mı?
+        return len(self.errors) == 0
+    
+    def print_summary(self):
+        """Özet rapor yazdır"""
+        duration = (datetime.now() - self.start_time).total_seconds()
+        
+        print("\n" + "=" * 80)
+        print("📊 HEALTH CHECK SUMMARY")
+        print("=" * 80)
+        
+        # İstatistikler
+        total_checks = len(self.checks)
+        passed = sum(1 for c in self.checks.values() if '✅' in c['status'])
+        warned = sum(1 for c in self.checks.values() if '⚠️' in c['status'])
+        failed = sum(1 for c in self.checks.values() if '❌' in c['status'])
+        
+        print(f"\n✅ Başarılı: {passed}/{total_checks}")
+        print(f"⚠️  Uyarı: {warned}/{total_checks}")
+        print(f"❌ Hata: {failed}/{total_checks}")
+        print(f"⏱️  Süre: {duration:.2f} saniye")
+        
+        # Detaylı sonuçlar
+        if self.warnings:
+            print(f"\n⚠️  UYARILAR ({len(self.warnings)}):")
+            for warning in self.warnings:
+                print(f"   • {warning}")
+        
+        if self.errors:
+            print(f"\n❌ HATALAR ({len(self.errors)}):")
+            for error in self.errors:
+                print(f"   • {error}")
+        
+        # Genel durum
+        print("\n" + "=" * 80)
+        if failed == 0:
+            if warned == 0:
+                print("🎉 MÜKEMMEL! Tüm sistem kontrolleri başarılı.")
+            else:
+                print("✅ İYİ! Sistem çalışabilir durumda (bazı uyarılar var).")
+        else:
+            print("❌ DİKKAT! Kritik hatalar var, lütfen düzeltin.")
+        print("=" * 80 + "\n")
+    
+    def save_report(self, output_path: str = "assets/health_check_report.json"):
+        """Health check raporunu JSON olarak kaydet"""
+        report = {
+            'timestamp': datetime.now().isoformat(),
+            'duration_seconds': (datetime.now() - self.start_time).total_seconds(),
+            'summary': {
+                'total_checks': len(self.checks),
+                'passed': sum(1 for c in self.checks.values() if '✅' in c['status']),
+                'warnings': len(self.warnings),
+                'errors': len(self.errors)
+            },
+            'checks': self.checks,
+            'warnings': self.warnings,
+            'errors': self.errors
+        }
+        
+        try:
+            Path(output_path).parent.mkdir(parents=True, exist_ok=True)
+            with open(output_path, 'w', encoding='utf-8') as f:
+                json.dump(report, f, indent=2, ensure_ascii=False)
+            print(f"💾 Health check raporu kaydedildi: {output_path}")
+        except Exception as e:
+            print(f"⚠️  Rapor kaydedilemedi: {e}")
 
 
 class BotDetectionAnalyzer:
@@ -466,6 +865,40 @@ def main():
     ║  Web sitelerinin bot tespit mekanizmalarını analiz eder  ║
     ╚═══════════════════════════════════════════════════════════╝
     """)
+    
+    # Self-check seçeneği
+    print("\n🔍 BAŞLANGIÇ SEÇENEKLERİ:")
+    print("1. Direkt analiz yap")
+    print("2. Önce sistem sağlık kontrolü yap (Self-Check)")
+    
+    choice = input("\nSeçiminiz (1/2) [varsayılan: 2]: ").strip() or "2"
+    
+    if choice == "2":
+        # Self-check çalıştır
+        health_checker = SystemHealthChecker()
+        
+        print("\n⚙️  Self-Check Seçenekleri:")
+        print("1. Hızlı kontrol (network ve browser testleri hariç)")
+        print("2. Tam kontrol (tüm testler)")
+        
+        check_mode = input("\nSeçiminiz (1/2) [varsayılan: 2]: ").strip() or "2"
+        
+        if check_mode == "1":
+            success = health_checker.run_all_checks(skip_network=True, skip_browser=True)
+        else:
+            success = health_checker.run_all_checks(skip_network=False, skip_browser=False)
+        
+        # Raporu kaydet
+        health_checker.save_report()
+        
+        # Kritik hatalar varsa devam etme
+        if not success:
+            print("\n❌ Kritik hatalar tespit edildi. Lütfen önce bunları düzeltin.")
+            print("💡 İpucu: requirements.txt'i kontrol edin ve 'playwright install chromium' komutunu çalıştırın.")
+            return
+        
+        print("\n✅ Sistem sağlıklı! Analize devam ediliyor...\n")
+        input("Devam etmek için Enter'a basın...")
     
     # Kullanıcıdan mod seçimi
     print("\n🎛️  MOD SEÇİMİ:")
