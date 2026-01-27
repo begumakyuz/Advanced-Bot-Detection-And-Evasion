@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  bot-analyzer:
+    build: .
+    volumes:
+      - ./assets:/app/assets
+      # Logların ana dizine düşmesi için eşleme:
+      - .:/app/logs 
+    environment:
+      - PYTHONUNBUFFERED=1
+    # Dosyan src/ klasörü içinde olduğu için yolunu belirtmelisin:
+    command: python src/bot_detection_analyzer.py
+    # Terminal etkileşimi için (Mod seçimi yapabilmen için):
+    tty: true
+    stdin_open: true
