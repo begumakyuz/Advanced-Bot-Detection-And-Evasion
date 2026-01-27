@@ -1,14 +1,12 @@
 name: Python Tests
-
 on: [push, pull_request]
-
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
       - name: Install dependencies
@@ -16,11 +14,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install pytest pytest-playwright
-      - name: Install Playwright Browsers
-        # İŞTE KRİTİK ADIM BURASI:
+      - name: Install Playwright Browsers and Deps
+        # Bu satır hem tarayıcıyı hem de eksik Linux kütüphanelerini kurar:
         run: playwright install --with-deps chromium
       - name: Run Tests
         run: |
-          # PYTHONPATH'i ayarla ki src klasörünü bulabilsin
           export PYTHONPATH=$PYTHONPATH:$(pwd)
-          pytest tests/test_bot_detection_analyzer.py
+          # 'xvfb-run' sanal bir ekran yaratarak tarayıcının çökmesini engeller:
+          xvfb-run pytest tests/test_bot_detection_analyzer.py
