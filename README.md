@@ -1,3 +1,8 @@
+
+![Python](https://img.shields.io/badge/python-3.8%2B-blue.svg)
+![License](https://img.shields.io/badge/license-MIT-green.svg)
+
+![Stars](https://img.shields.io/github/stars/begumakyuz/Advanced-Bot-Detection-And-Evasion?style=social) 
 # 🤖 Bot Detection Analyzer
 
 Web sitelerinin botları tespit etmek için kullandığı tüm temel kriterleri analiz eden profesyonel Python aracı.
