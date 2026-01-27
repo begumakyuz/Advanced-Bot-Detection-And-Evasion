@@ -2,7 +2,8 @@ name: Python Tests
 on: [push, pull_request]
 jobs:
   test:
-    runs-on: ubuntu-latest
+    # 'ubuntu-latest' yerine stabil olan 'ubuntu-22.04' kullanıyoruz:
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
@@ -14,13 +15,14 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install pytest pytest-playwright
-      - name: Install Playwright Browsers & Deps
-        run: playwright install --with-deps chromium
+      - name: Install Playwright Browsers & Linux Deps
+        # Bu komut artık ubuntu-22.04 üzerinde hatasız çalışacak:
+        run: npx playwright install --with-deps chromium
       - name: Run Tests
         env:
-          # Python'a 'src' klasörünü ana dizin olarak tanıtıyoruz:
           PYTHONPATH: ${{ github.workspace }}
         run: |
-          # Testten önce gerekli klasörü oluşturuyoruz:
+          # Testten önce klasörü oluştur:
           mkdir -p assets/bot_analysis
+          # xvfb-run ile sanal ekran üzerinden testi başlat:
           xvfb-run pytest tests/test_bot_detection_analyzer.py
