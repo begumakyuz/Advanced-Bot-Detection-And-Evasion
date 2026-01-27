@@ -1,0 +1,17 @@
+{
+  "projectName": "Advanced Bot Detection And Evasion",
+  "category": "Cybersecurity & Automation",
+  "author": "Begüm Akyüz",
+  "version": "1.0.0",
+  "description": "Analysis and evasion tool for web automation detection mechanisms.",
+  "features": [
+    "Fingerprint Analysis",
+    "Risk Scoring",
+    "Stealth Mode Implementation",
+    "Automated Reporting"
+  ],
+  "requirements": {
+    "os": "Ubuntu 22.04 / Windows 10+",
+    "language": "Python 3.10"
+  }
+}
