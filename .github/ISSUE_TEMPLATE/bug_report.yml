@@ -1,0 +1,56 @@
+name: 🐛 Bug Report
+description: Bir bug bildirin
+title: "[BUG] "
+labels: ["bug"]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Bug raporunuz için teşekkürler!
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Açıklaması
+      description: Ne oldu? Ne olmalıydı?
+      placeholder: |
+        Adımlar:
+        1. '...' sayfasına git
+        2. '...' butonuna tıkla
+        3. Hata görüldü
+    validations:
+      required: true
+
+  - type: textarea
+    id: self-check
+    attributes:
+      label: Self-Check Sonucu
+      description: "python self_check.py çıktısı"
+      render: shell
+      placeholder: |
+        ✅ Başarılı: 10/10
+        ⚠️  Uyarı: 0/10
+        ❌ Hata: 0/10
+    validations:
+      required: true
+
+  - type: input
+    id: python-version
+    attributes:
+      label: Python Version
+      placeholder: "3.11.0"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating System
+      options:
+        - Windows
+        - macOS
+        - Linux
+        - Other
+    validations:
+      required: true
