@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  bot-analyzer:
+    build: .
+    volumes:
+      - ./assets:/app/assets
+      - ./logs:/app/logs
+    environment:
+      - PYTHONUNBUFFERED=1
+    command: python bot_detection_analyzer.py
