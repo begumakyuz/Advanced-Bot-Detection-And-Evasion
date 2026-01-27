@@ -1,1 +1,15 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
 
+# OS
+.DS_Store
+Thumbs.db
+
+# Project Specific
+bot_detection_analysis.log
+assets/bot_analysis/*.png
+assets/bot_analysis/*.json
