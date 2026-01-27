@@ -14,11 +14,13 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install pytest pytest-playwright
-      - name: Install Playwright Browsers and Deps
-        # Bu satır hem tarayıcıyı hem de eksik Linux kütüphanelerini kurar:
+      - name: Install Playwright Browsers & Deps
         run: playwright install --with-deps chromium
       - name: Run Tests
+        env:
+          # Python'a 'src' klasörünü ana dizin olarak tanıtıyoruz:
+          PYTHONPATH: ${{ github.workspace }}
         run: |
-          export PYTHONPATH=$PYTHONPATH:$(pwd)
-          # 'xvfb-run' sanal bir ekran yaratarak tarayıcının çökmesini engeller:
+          # Testten önce gerekli klasörü oluşturuyoruz:
+          mkdir -p assets/bot_analysis
           xvfb-run pytest tests/test_bot_detection_analyzer.py
